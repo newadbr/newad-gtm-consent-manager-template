@@ -1,0 +1,6 @@
+homepage: "https://newad.com.br/"
+documentation: "https://github.com/newadbr/newad-gtm-consent-manager-template#readme"
+# Replace sha below with the full SHA from Commit 1 in the target repository.
+versions:
+  - sha: 8848e02d6c5026dec369f576a02cb4c8ee8c432d
+    changeNotes: Initial release.
