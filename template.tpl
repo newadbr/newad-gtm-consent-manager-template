@@ -9,7 +9,7 @@ ___INFO___
 
 {
   "type": "TAG",
-  "id": "cvt_newad_consent_manager",
+  "id": "cvt_temp_public_id",
   "version": 1,
   "securityGroups": [],
   "displayName": "Newad Consent Manager",
@@ -17,13 +17,9 @@ ___INFO___
     "id": "github_com_newadbr",
     "displayName": "Newad"
   },
-  "description": "Este template integra o banner de consentimento com os padrões do Google",
+  "description": "Newad consent management template.",
   "containerContexts": [
     "WEB"
-  ],
-  "categories": [
-    "TAG_MANAGEMENT",
-    "UTILITY"
   ]
 }
 ___TEMPLATE_PARAMETERS___
@@ -95,7 +91,7 @@ ___TEMPLATE_PARAMETERS___
                   "displayValue": "Denied"
                 },
                 {
-                  "value": "",
+                  "value": "denied",
                   "displayValue": "(not set)"
                 }
               ],
@@ -120,7 +116,7 @@ ___TEMPLATE_PARAMETERS___
                   "displayValue": "Denied"
                 },
                 {
-                  "value": "",
+                  "value": "granted",
                   "displayValue": "(not set)"
                 }
               ],
@@ -145,7 +141,7 @@ ___TEMPLATE_PARAMETERS___
                   "displayValue": "Denied"
                 },
                 {
-                  "value": "",
+                  "value": "granted",
                   "displayValue": "(not set)"
                 }
               ],
@@ -195,7 +191,7 @@ ___TEMPLATE_PARAMETERS___
                   "displayValue": "Denied"
                 },
                 {
-                  "value": "",
+                  "value": "granted",
                   "displayValue": "(not set)"
                 }
               ],
@@ -245,7 +241,7 @@ ___TEMPLATE_PARAMETERS___
                   "displayValue": "Denied"
                 },
                 {
-                  "value": "",
+                  "value": "granted",
                   "displayValue": "(not set)"
                 }
               ],
@@ -279,8 +275,7 @@ ___TEMPLATE_PARAMETERS___
             "type": "CHECKBOX",
             "name": "adsDataRedaction",
             "checkboxText": "Redact Ads Data",
-            "simpleValueType": true,
-            "defaultValue": true
+            "simpleValueType": true
           },
           {
             "type": "CHECKBOX",
@@ -335,7 +330,7 @@ ___TEMPLATE_PARAMETERS___
           }
         ],
         "simpleValueType": true,
-        "defaultValue": "",
+        "defaultValue": "-",
         "notSetText": ""
       },
       {
@@ -359,7 +354,7 @@ ___TEMPLATE_PARAMETERS___
         ],
         "simpleValueType": true,
         "notSetText": "",
-        "defaultValue": ""
+        "defaultValue": "-"
       },
       {
         "type": "SELECT",
@@ -382,7 +377,7 @@ ___TEMPLATE_PARAMETERS___
         ],
         "simpleValueType": true,
         "notSetText": "",
-        "defaultValue": ""
+        "defaultValue": "-"
       },
       {
         "type": "SELECT",
@@ -405,7 +400,7 @@ ___TEMPLATE_PARAMETERS___
         ],
         "simpleValueType": true,
         "notSetText": "",
-        "defaultValue": ""
+        "defaultValue": "-"
       },
       {
         "type": "SELECT",
@@ -428,7 +423,7 @@ ___TEMPLATE_PARAMETERS___
         ],
         "simpleValueType": true,
         "notSetText": "",
-        "defaultValue": ""
+        "defaultValue": "-"
       },
       {
         "type": "SELECT",
@@ -451,7 +446,7 @@ ___TEMPLATE_PARAMETERS___
         ],
         "simpleValueType": true,
         "notSetText": "",
-        "defaultValue": ""
+        "defaultValue": "-"
       },
       {
         "type": "SELECT",
@@ -474,7 +469,7 @@ ___TEMPLATE_PARAMETERS___
         ],
         "simpleValueType": true,
         "notSetText": "",
-        "defaultValue": ""
+        "defaultValue": "-"
       },
       {
         "type": "LABEL",
@@ -524,14 +519,6 @@ ___TEMPLATE_PARAMETERS___
       },
       {
         "type": "TEXT",
-        "name": "bannerScriptUrl",
-        "displayName": "URL HTTPS do script do banner",
-        "simpleValueType": true,
-        "help": "Informe a URL HTTPS de um script externo responsável por renderizar o banner",
-        "defaultValue": ""
-      },
-      {
-        "type": "TEXT",
         "name": "cookieNameVar",
         "displayName": "Nome do cookie de consent/ID",
         "simpleValueType": true,
@@ -545,194 +532,138 @@ ___TEMPLATE_PARAMETERS___
 
 ___SANDBOXED_JS_FOR_WEB_TEMPLATE___
 
-var setDefaultConsentState = require('setDefaultConsentState');
-var updateConsentState = require('updateConsentState');
-var gtagSet = require('gtagSet');
-var getCookieValues = require('getCookieValues');
-var setCookie = require('setCookie');
-var injectScript = require('injectScript');
-var encodeUriComponent = require('encodeUriComponent');
-var CONSENT_KEYS = ['ad_storage', 'analytics_storage', 'functionality_storage', 'personalization_storage', 'security_storage', 'ad_user_data', 'ad_personalization'];
-var splitInput = function splitInput(input) {
-  return (input || '').split(',').map(function (entry) {
-    return entry.trim();
-  }).filter(function (entry) {
-    return entry.length !== 0;
-  });
+const setDefaultConsentState = require('setDefaultConsentState');
+const updateConsentState = require('updateConsentState');
+const gtagSet = require('gtagSet');
+
+
+const splitInput = (input) => {
+  return input.split(',')
+    .map(entry => entry.trim())
+    .filter(entry => entry.length !== 0);
 };
-var isConsentValue = function isConsentValue(value) {
-  return value === 'granted' || value === 'denied';
-};
-var getCookieName = function getCookieName() {
+
+
+
+const getCookieValues = require('getCookieValues');
+const setCookie = require('setCookie');
+// logToConsole é opcional; se estiver usando, mantenha:
+const logToConsole = require('logToConsole');
+
+const getCookieName = () => {
   if (data.cookieNameVar && data.cookieNameVar.length > 0) {
     return data.cookieNameVar;
   }
   return 'NWD_CID';
 };
-var getConsentCookie = function getConsentCookie() {
-  var cookieName = getCookieName();
-  var values = getCookieValues(cookieName);
+
+const getConsentCookie = () => {
+  const cookieName = getCookieName();
+  const values = getCookieValues(cookieName);
   if (values && values.length > 0) {
     return values[0];
   }
   return '';
 };
-var setConsentCookie = function setConsentCookie(value) {
-  setCookie(getCookieName(), value, {
+
+const setConsentCookie = (value) => {
+  const cookieName = getCookieName();
+  // value já é string; sem try/catch, nem JSON
+  setCookie(cookieName, value, {
     maxAgeSeconds: 31536000,
     path: '/'
   });
 };
-var parseConsentCookieValue = function parseConsentCookieValue(cookieValue) {
-  var commandData = {};
-  if (!cookieValue) {
-    return commandData;
-  }
-  var normalizedValue = cookieValue.indexOf('consents=') === 0 ? cookieValue.substring('consents='.length) : cookieValue;
-  var entries = normalizedValue.split('|');
-  var hasNamedPairs = false;
-  entries.forEach(function (entry) {
-    var pair = entry.split('=');
-    if (pair.length !== 2) {
-      return;
-    }
-    var key = pair[0].trim();
-    var value = pair[1].trim();
-    if (CONSENT_KEYS.indexOf(key) !== -1 && isConsentValue(value)) {
-      commandData[key] = value;
-      hasNamedPairs = true;
-    }
-  });
-  if (hasNamedPairs) {
-    return commandData;
-  }
-  if (entries.length > 0 && isConsentValue(entries[0])) {
-    commandData.ad_storage = entries[0];
-  }
-  if (entries.length > 1 && isConsentValue(entries[1])) {
-    commandData.analytics_storage = entries[1];
-  }
-  if (entries.length > 2 && isConsentValue(entries[2])) {
-    commandData.ad_user_data = entries[2];
-  }
-  return commandData;
-};
-var serializeConsentCookieValue = function serializeConsentCookieValue(consentState) {
-  var entries = [];
-  CONSENT_KEYS.forEach(function (key) {
-    if (isConsentValue(consentState[key])) {
-      entries.push(key + '=' + consentState[key]);
-    }
-  });
-  return 'consents=' + entries.join('|');
-};
-var parseDefaultCommandData = function parseDefaultCommandData(settings) {
-  var regions = splitInput(settings.region);
-  var commandData = {};
+
+
+
+const parseDefaultCommandData = (settings) => {
+  const regions = splitInput(settings.region);
+  const commandData = {};
+
   if (regions.length > 0) {
     commandData.region = regions;
   }
-  if (isConsentValue(settings.adStorage)) {
+  if (settings.adStorage === 'granted' || settings.adStorage === 'denied') {
     commandData.ad_storage = settings.adStorage;
   }
-  if (isConsentValue(settings.analyticsStorage)) {
+  if (settings.analyticsStorage === 'granted' || settings.analyticsStorage === 'denied') {
     commandData.analytics_storage = settings.analyticsStorage;
   }
-  if (isConsentValue(settings.functionalityStorage)) {
+  if (settings.functionalityStorage === 'granted' || settings.functionalityStorage === 'denied') {
     commandData.functionality_storage = settings.functionalityStorage;
   }
-  if (isConsentValue(settings.personalizationStorage)) {
+  if (settings.personalizationStorage === 'granted' || settings.personalizationStorage === 'denied') {
     commandData.personalization_storage = settings.personalizationStorage;
   }
-  if (isConsentValue(settings.securityStorage)) {
+  if (settings.securityStorage === 'granted' || settings.securityStorage === 'denied') {
     commandData.security_storage = settings.securityStorage;
   }
-  if (isConsentValue(settings.adUserData)) {
+  if (settings.adUserData === 'granted' || settings.adUserData === 'denied') {
     commandData.ad_user_data = settings.adUserData;
   }
-  if (isConsentValue(settings.adPersonalization)) {
+  if (settings.adPersonalization === 'granted' || settings.adPersonalization === 'denied') {
     commandData.ad_personalization = settings.adPersonalization;
   }
   return commandData;
 };
-var parseUpdateCommandData = function parseUpdateCommandData() {
-  var commandData = {};
-  if (isConsentValue(data.adStorageUpdate)) {
-    commandData.ad_storage = data.adStorageUpdate;
-  }
-  if (isConsentValue(data.analyticsStorageUpdate)) {
-    commandData.analytics_storage = data.analyticsStorageUpdate;
-  }
-  if (isConsentValue(data.functionalityStorageUpdate)) {
-    commandData.functionality_storage = data.functionalityStorageUpdate;
-  }
-  if (isConsentValue(data.personalizationStorageUpdate)) {
-    commandData.personalization_storage = data.personalizationStorageUpdate;
-  }
-  if (isConsentValue(data.securityStorageUpdate)) {
-    commandData.security_storage = data.securityStorageUpdate;
-  }
-  if (isConsentValue(data.adUserDataUpdate)) {
-    commandData.ad_user_data = data.adUserDataUpdate;
-  }
-  if (isConsentValue(data.adPersonalizationUpdate)) {
-    commandData.ad_personalization = data.adPersonalizationUpdate;
-  }
-  return commandData;
-};
-var hasAnyKey = function hasAnyKey(obj) {
-  for (var key in obj) {
-    if (key) {
-      return true;
-    }
-  }
-  return false;
-};
-var renderConsentBanner = function renderConsentBanner() {
-  var baseUrl = data.bannerScriptUrl || '';
-  if (baseUrl.indexOf('https://') !== 0) {
-    return;
-  }
-  var separator = baseUrl.indexOf('?') === -1 ? '?' : '&';
-  var params = ['title=' + encodeUriComponent(data.bannerTitle || 'Usamos cookies para melhorar sua experiência'), 'description=' + encodeUriComponent(data.bannerDescription || 'Utilizamos cookies para medir audiência, personalizar conteúdo e entregar anúncios relevantes.'), 'cookie_name=' + encodeUriComponent(getCookieName())].join('&');
-  var scriptUrl = baseUrl + separator + params;
-  injectScript(scriptUrl, function () {}, function () {});
-};
-var processData = function processData() {
+
+const processData = () => {
   if (data.command === 'default') {
-    (data.defaultSettings || []).forEach(function (settings) {
-      var commandData = parseDefaultCommandData(settings);
+    data.defaultSettings.forEach(settings => {
+      const commandData = parseDefaultCommandData(settings);
       if (data.waitForUpdate > 0) {
         commandData.wait_for_update = data.waitForUpdate;
       }
       setDefaultConsentState(commandData);
+
+      // Carrega cookie existente (se existir) e empurra info pro dataLayer
+      const existingCookie = getConsentCookie();
+      
     });
-    var persistedConsent = parseConsentCookieValue(getConsentCookie());
-    if (hasAnyKey(persistedConsent)) {
-      updateConsentState(persistedConsent);
-    }
-    gtagSet('ads_data_redaction', data.adsDataRedaction === true);
-    gtagSet('url_passthrough', data.urlThroughpass === true);
-    if (data.enableBanner === true && !getConsentCookie()) {
-      renderConsentBanner();
-    }
+    gtagSet('ads_data_redaction', data.adsDataRedaction);
   }
+
   if (data.command === 'update') {
-    var commandData = parseUpdateCommandData();
-    if (hasAnyKey(commandData)) {
-      updateConsentState(commandData);
-      var _persistedConsent = parseConsentCookieValue(getConsentCookie());
-      CONSENT_KEYS.forEach(function (key) {
-        if (isConsentValue(commandData[key])) {
-          _persistedConsent[key] = commandData[key];
-        }
-      });
-      setConsentCookie(serializeConsentCookieValue(_persistedConsent));
+    const commandData = {};
+    if (data.adStorageUpdate === 'granted' || data.adStorageUpdate === 'denied') {
+      commandData.ad_storage = data.adStorageUpdate;
     }
+    if (data.analyticsStorageUpdate === 'granted' || data.analyticsStorageUpdate === 'denied') {
+      commandData.analytics_storage = data.analyticsStorageUpdate;
+    }
+    if (data.functionalityStorageUpdate === 'granted' || data.functionalityStorageUpdate === 'denied') {
+      commandData.functionality_storage = data.functionalityStorageUpdate;
+    }
+    if (data.personalizationStorageUpdate === 'granted' || data.personalizationStorageUpdate === 'denied') {
+      commandData.personalization_storage = data.personalizationStorageUpdate;
+    }
+    if (data.securityStorageUpdate === 'granted' || data.securityStorageUpdate === 'denied') {
+      commandData.security_storage = data.securityStorageUpdate;
+    }
+    if (data.adUserDataUpdate === 'granted' || data.adUserDataUpdate === 'denied') {
+      commandData.ad_user_data = data.adUserDataUpdate;
+    }
+    if (data.adPersonalizationUpdate === 'granted' || data.adPersonalizationUpdate === 'denied') {
+      commandData.ad_personalization = data.adPersonalizationUpdate;
+    }
+
+    updateConsentState(commandData);
+
+    // Atualiza cookie só quando tiver algum valor definido
+    setConsentCookie('consents=' + 
+                     data.adStorageUpdate + '|' + 
+                     data.analyticsStorageUpdate + '|' + 
+                     data.adUserDataUpdate);
+
+    
   }
 };
+
 processData();
 data.gtmOnSuccess();
+
+
 ___WEB_PERMISSIONS___
 
 [
@@ -1021,10 +952,6 @@ ___WEB_PERMISSIONS___
               {
                 "type": 1,
                 "string": "ads_data_redaction"
-              },
-              {
-                "type": 1,
-                "string": "url_passthrough"
               }
             ]
           }
@@ -1048,6 +975,27 @@ ___WEB_PERMISSIONS___
           "value": {
             "type": 1,
             "string": "any"
+          }
+        }
+      ]
+    },
+    "clientAnnotations": {
+      "isEditedByUser": true
+    },
+    "isRequired": true
+  },
+  {
+    "instance": {
+      "key": {
+        "publicId": "logging",
+        "versionId": "1"
+      },
+      "param": [
+        {
+          "key": "environments",
+          "value": {
+            "type": 1,
+            "string": "debug"
           }
         }
       ]
@@ -1096,7 +1044,7 @@ ___WEB_PERMISSIONS___
                 "mapValue": [
                   {
                     "type": 1,
-                    "string": "*"
+                    "string": "NWD_CID"
                   },
                   {
                     "type": 1,
@@ -1125,34 +1073,10 @@ ___WEB_PERMISSIONS___
       "isEditedByUser": true
     },
     "isRequired": true
-  },
-  {
-    "instance": {
-      "key": {
-        "publicId": "inject_script",
-        "versionId": "1"
-      },
-      "param": [
-        {
-          "key": "urls",
-          "value": {
-            "type": 2,
-            "listItem": [
-              {
-                "type": 1,
-                "string": "https://*/*"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    "clientAnnotations": {
-      "isEditedByUser": true
-    },
-    "isRequired": true
   }
 ]
+
+
 ___TESTS___
 
 scenarios:
@@ -1211,10 +1135,6 @@ scenarios:
       ad_user_data: 'granted',
       ad_personalization: 'granted',
     });
-    assertApi('setCookie').wasCalledWith('NWD_CID', 'consents=ad_storage=granted|analytics_storage=granted|ad_user_data=granted|ad_personalization=granted', {
-      maxAgeSeconds: 31536000,
-      path: '/',
-    });
 - name: Updates set correctly - Granted to Denied
   code: |-
     const setDefaultConsentState = require('setDefaultConsentState');
@@ -1240,10 +1160,6 @@ scenarios:
       analytics_storage: 'denied',
       ad_user_data: 'denied',
       ad_personalization: 'denied',
-    });
-    assertApi('setCookie').wasCalledWith('NWD_CID', 'consents=ad_storage=denied|analytics_storage=denied|ad_user_data=denied|ad_personalization=denied', {
-      maxAgeSeconds: 31536000,
-      path: '/',
     });
 - name: Wait for update set correctly
   code: |-
@@ -1294,73 +1210,6 @@ scenarios:
     // Verify that the tag finished successfully.\nassertApi('gtmOnSuccess').wasCalled();\n\
     assertApi('setDefaultConsentState').wasCalledWith({\n  ad_storage: 'denied',\n\
     \  analytics_storage: 'denied',\n  ad_user_data: 'denied',\n});"
-- name: Default ignores explicit not-set values
-  code: |-
-    const mockData = {
-      command: 'default',
-      defaultSettings: [
-        {
-          region: '',
-          adStorage: 'denied',
-          analyticsStorage: '',
-          functionalityStorage: '',
-          personalizationStorage: '',
-          securityStorage: '',
-          adUserData: '',
-          adPersonalization: '',
-        },
-      ],
-    };
-    runCode(mockData);
-    assertApi('gtmOnSuccess').wasCalled();
-    assertApi('setDefaultConsentState').wasCalledWith({
-      ad_storage: 'denied',
-    });
-- name: Update does nothing when no valid consent values are sent
-  code: |-
-    const mockData = {
-      command: 'update',
-      adStorageUpdate: '',
-      analyticsStorageUpdate: '',
-      adUserDataUpdate: '',
-      adPersonalizationUpdate: '',
-    };
-    runCode(mockData);
-    assertApi('gtmOnSuccess').wasCalled();
-    assertApi('updateConsentState').wasNotCalled();
-    assertApi('setCookie').wasNotCalled();
-- name: url_passthrough is set from settings
-  code: |-
-    const mockData = {
-      command: 'default',
-      defaultSettings: [
-        {
-          region: '',
-          adStorage: 'granted',
-        }
-      ],
-      urlThroughpass: true,
-    };
-    runCode(mockData);
-    assertApi('gtagSet').wasCalledWith('url_passthrough', true);
-- name: Banner is injected when enabled and no consent cookie exists
-  code: |-
-    const mockData = {
-      command: 'default',
-      defaultSettings: [
-        {
-          region: '',
-          adStorage: 'denied',
-        }
-      ],
-      enableBanner: true,
-      bannerTitle: 'Teste de banner',
-      bannerDescription: 'Descricao do banner',
-      bannerScriptUrl: 'https://cdn.newad.example/consent-banner.js',
-      cookieNameVar: 'NWD_CID',
-    };
-    runCode(mockData);
-    assertApi('injectScript').wasCalled();
 
 
 ___NOTES___
