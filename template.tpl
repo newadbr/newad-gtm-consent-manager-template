@@ -1174,7 +1174,20 @@ ___WEB_PERMISSIONS___
         "publicId": "inject_script",
         "versionId": "1"
       },
-      "param": []
+      "param": [
+        {
+          "key": "urls",
+          "value": {
+            "type": 2,
+            "listItem": [
+              {
+                "type": 1,
+                "string": "https://*/*"
+              }
+            ]
+          }
+        }
+      ]
     },
     "clientAnnotations": {
       "isEditedByUser": true
@@ -1182,8 +1195,6 @@ ___WEB_PERMISSIONS___
     "isRequired": true
   }
 ]
-
-
 ___TESTS___
 
 scenarios:
