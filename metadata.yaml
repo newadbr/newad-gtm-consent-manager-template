@@ -1,5 +1,5 @@
 homepage: "https://newad.com.br/"
 documentation: "https://github.com/newadbr/newad-gtm-consent-manager-template#readme"
 versions:
-  - sha: d9f5af2a20a7f1b59ddba384e4660f95c719bd74
+  - sha: 2af9e19694b92d5dbf4381877a0333abcf81a265
     changeNotes: Initial release.
